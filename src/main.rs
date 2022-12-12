@@ -2,7 +2,7 @@
 // "extern crate pancurses", "extern crate" is no longer needed since Rust 2018 because Cargo knows what dependencies to load.
 use rand::rngs::ThreadRng;
 use rand::{thread_rng, Rng};
-use pancurses::{ initscr, start_color, endwin, Input, noecho, init_pair, COLOR_PAIR, Window };
+use pancurses::{ initscr, resize_term, start_color, endwin, Input, noecho, init_pair, COLOR_PAIR, Window, set_title };
 use pancurses::{ COLOR_GREEN, COLOR_WHITE, COLOR_BLACK };
 
 static MAN_C: char = '☺';
@@ -17,6 +17,8 @@ struct Program {
     window: Window,
     rng: ThreadRng,
 
+    score: i32,
+
     // the lumberjack
     man_x: i32,
     man_y: i32,
@@ -29,13 +31,24 @@ impl Program {
         Program {
             window: initscr(),
             trees: Vec::new(),
+            score: 0,
             man_x: 40,
             man_y: 12,
             rng: thread_rng()
         }
     }
 
+    // fn load_audio(&mut self) {
+
+    // }
+
     fn init(&mut self) {
+        set_title("Lumberjack - by Hevanafa (Dec 2022)");
+
+        // load_audio();
+
+        resize_term(25, 80);
+
         start_color();
         init_pair(1, COLOR_WHITE, COLOR_BLACK); // man
         init_pair(2, COLOR_GREEN, COLOR_BLACK); // trees
@@ -65,11 +78,55 @@ impl Program {
         self.window.mv(self.man_y, self.man_x);
         self.window.addch(MAN_C);
         self.window.attroff(COLOR_PAIR(1));
+
+        self.window.mv(0, 0);
+        self.window.printw(format!("Score: {}", self.score));
     
         self.window.mv(24, 0);
         self.window.printw("Press q to quit.");
     
         self.window.refresh();
+    }
+
+    // returns true if there's a tree
+    fn check_tree(&mut self, delta_x: i32, delta_y: i32) -> bool {
+        if self.trees.iter().any(|tree|
+            tree.x == self.man_x + delta_x &&
+            tree.y == self.man_y + delta_y
+        ) {
+            // let tree = self.trees.iter().find(|tree| tree.x == self.man_x + inc);
+            let idx = self.trees.iter().position(|tree|
+                tree.x == self.man_x + delta_x &&
+                tree.y == self.man_y + delta_y
+            ).unwrap();
+            self.trees.remove(idx);
+
+            self.score += 1;
+
+            return true;
+        }
+
+        false
+    }
+
+    fn step_x(&mut self, inc: i32) {
+        // check tree hit
+        if self.check_tree(inc, 0) { return; }
+
+        self.man_x += inc;
+
+        if self.man_x < 0  { self.man_x = 0; }
+        if self.man_x > 79 { self.man_x = 79; }
+    }
+
+    fn step_y(&mut self, inc: i32) {
+        // check tree hit
+        if self.check_tree(0, inc) { return; }
+
+        self.man_y += inc;
+
+        if self.man_y < 0  { self.man_y = 0; }
+        if self.man_y > 24 { self.man_y = 24; }
     }
 
     fn update(&self) {
@@ -89,10 +146,10 @@ fn main() {
         match input {
             Some(Input::Character('q')) => break,
 
-            Some(Input::KeyUp) => p.man_y -= 1,
-            Some(Input::KeyDown) => p.man_y += 1,
-            Some(Input::KeyLeft) => p.man_x -= 1,
-            Some(Input::KeyRight) => p.man_x += 1,
+            Some(Input::KeyUp) => p.step_y(-1), // p.man_y -= 1,
+            Some(Input::KeyDown) => p.step_y(1), // p.man_y += 1,
+            Some(Input::KeyLeft) => p.step_x(-1), // p.man_x -= 1,
+            Some(Input::KeyRight) => p.step_x(1), // p.man_x += 1,
 
             None => (),
             _ => {
