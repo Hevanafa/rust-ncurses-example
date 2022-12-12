@@ -7,19 +7,12 @@ use pancurses::{ COLOR_GREEN, COLOR_WHITE, COLOR_BLACK };
 
 use std::error::Error;
 
+// for audio
 use kira::manager::{
     AudioManager, AudioManagerSettings,
     backend::cpal::CpalBackend,
 };
 use kira::sound::static_sound::{ StaticSoundData, StaticSoundSettings };
-
-// for audio
-// use rodio::cpal::traits::HostTrait;
-// use std::fs::File;
-// use std::io::{BufReader, BufRead};
-// use std::time::Duration;
-// use rodio::{ cpal, Decoder, OutputStream, Sink, DeviceTrait };
-// use rodio::source::{SineWave, Source};
 
 static MAN_C: char = '☺';
 static TREE_C: char = 'φ';
@@ -37,8 +30,10 @@ struct Program {
 
     // the lumberjack
     man: Point,
+    // trees to cut
     trees: Vec<Point>,
 
+    // SFX
     audio_manager: Option<AudioManager<CpalBackend>>,
     hit_sfx: Option<StaticSoundData>,
 }
@@ -81,64 +76,9 @@ impl Program {
             },
             None => ()
         }
-        // if self.audio_manager.is_none() { return Ok(()); }
-
-        // self.audio_manager.unwrap().play(
-        //     self.hit_sfx.unwrap().clone());
-
-        // let mut manager: AudioManager = *self.audio_manager.as_ref().unwrap();
-        // manager.play(self.hit_sfx.unwrap().clone())?;
 
         Ok(())
     }
-
-    // old one, with rodio
-    // fn load_audio(&mut self) -> Result<(), Box<dyn Error>> {
-    //     println!("Loading audio...");
-
-        // let host = cpal::default_host();
-        // let devices = host.output_devices()?;
-        // let mut sink: Option<Sink> = None;
-
-        // for d in devices {
-        //     dbg!(format!("{:?}", d.name()));
-        //     let (_, handle) = OutputStream::try_from_device(&d)?;
-        //     sink = Some(Sink::try_new(&handle)?);
-        //     break;
-        // }
-
-        // let (_, handle) = OutputStream::try_default().unwrap();
-        // sink = Sink::try_new(&handle).unwrap();
-
-        // let file = BufReader::new(File::open("Blow2.ogg").expect("Can't find Blow2.ogg"));
-        // let source = Decoder::new(file).unwrap();
-        // handle.play_raw(source.convert_samples())?;
-
-        // let source = SineWave::new(440.0)
-        //     .take_duration(Duration::from_secs_f32(0.25))
-        //     .amplify(0.2);
-
-    //     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    //     let sink = Sink::try_new(&stream_handle).unwrap();
-
-    //     // load_audio
-    //     let file = BufReader::new(File::open("Blow2.ogg").unwrap());
-    //     self.hit_sfx = Some(file);
-
-    //     Ok(())
-    // }
-
-    // fn play_hit_sfx(&self) {
-    //     match self.hit_sfx {
-    //         Some(..) => {
-    //             let source = Decoder::new(&self.hit_sfx).unwrap();
-    //             self.sink.append(source);
-    //         },
-    //         None => return
-    //     }
-
-    //     // sink.sleep_until_end();
-    // }
 
     fn init(&mut self) {
         set_title("Lumberjack - by Hevanafa (Dec 2022)");
@@ -173,7 +113,7 @@ impl Program {
         }
         self.window.attroff(COLOR_PAIR(2));
     
-        self.window.attroff(COLOR_PAIR(1));
+        self.window.attron(COLOR_PAIR(1));
         self.window.mv(self.man.y, self.man.x);
         self.window.addch(MAN_C);
         self.window.attroff(COLOR_PAIR(1));
@@ -193,7 +133,6 @@ impl Program {
             tree.x == self.man.x + delta_x &&
             tree.y == self.man.y + delta_y
         ) {
-            // let tree = self.trees.iter().find(|tree| tree.x == self.man_x + inc);
             let idx = self.trees.iter().position(|tree|
                 tree.x == self.man.x + delta_x &&
                 tree.y == self.man.y + delta_y
