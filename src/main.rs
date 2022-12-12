@@ -8,7 +8,7 @@ use pancurses::{ COLOR_GREEN, COLOR_WHITE, COLOR_BLACK };
 static MAN_C: char = '☺';
 static TREE_C: char = 'φ';
 
-struct Tree {
+struct Point {
     x: i32,
     y: i32
 }
@@ -20,10 +20,8 @@ struct Program {
     score: i32,
 
     // the lumberjack
-    man_x: i32,
-    man_y: i32,
-
-    trees: Vec<Tree>
+    man: Point,
+    trees: Vec<Point>
 }
 
 impl Program {
@@ -32,8 +30,7 @@ impl Program {
             window: initscr(),
             trees: Vec::new(),
             score: 0,
-            man_x: 40,
-            man_y: 12,
+            man: Point { x: 40, y: 12 },
             rng: thread_rng()
         }
     }
@@ -60,7 +57,7 @@ impl Program {
         // fill the field with 20 trees
         for _ in 0..20 {
             let (x, y) = (self.rng.gen_range(0..80), self.rng.gen_range(0..25));
-            self.trees.push(Tree { x, y });
+            self.trees.push(Point { x, y });
         }
     }
 
@@ -75,7 +72,7 @@ impl Program {
         self.window.attroff(COLOR_PAIR(2));
     
         self.window.attroff(COLOR_PAIR(1));
-        self.window.mv(self.man_y, self.man_x);
+        self.window.mv(self.man.y, self.man.x);
         self.window.addch(MAN_C);
         self.window.attroff(COLOR_PAIR(1));
 
@@ -91,13 +88,13 @@ impl Program {
     // returns true if there's a tree
     fn check_tree(&mut self, delta_x: i32, delta_y: i32) -> bool {
         if self.trees.iter().any(|tree|
-            tree.x == self.man_x + delta_x &&
-            tree.y == self.man_y + delta_y
+            tree.x == self.man.x + delta_x &&
+            tree.y == self.man.y + delta_y
         ) {
             // let tree = self.trees.iter().find(|tree| tree.x == self.man_x + inc);
             let idx = self.trees.iter().position(|tree|
-                tree.x == self.man_x + delta_x &&
-                tree.y == self.man_y + delta_y
+                tree.x == self.man.x + delta_x &&
+                tree.y == self.man.y + delta_y
             ).unwrap();
             self.trees.remove(idx);
 
@@ -113,20 +110,20 @@ impl Program {
         // check tree hit
         if self.check_tree(inc, 0) { return; }
 
-        self.man_x += inc;
+        self.man.x += inc;
 
-        if self.man_x < 0  { self.man_x = 0; }
-        if self.man_x > 79 { self.man_x = 79; }
+        if self.man.x < 0  { self.man.x = 0; }
+        if self.man.x > 79 { self.man.x = 79; }
     }
 
     fn step_y(&mut self, inc: i32) {
         // check tree hit
         if self.check_tree(0, inc) { return; }
 
-        self.man_y += inc;
+        self.man.y += inc;
 
-        if self.man_y < 0  { self.man_y = 0; }
-        if self.man_y > 24 { self.man_y = 24; }
+        if self.man.y < 0  { self.man.y = 0; }
+        if self.man.y > 24 { self.man.y = 24; }
     }
 
     fn update(&self) {
