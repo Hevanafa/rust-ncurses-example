@@ -1,6 +1,7 @@
+// 12-12-2022
+// "extern crate pancurses", "extern crate" is no longer needed since Rust 2018 because Cargo knows what dependencies to load.
 use rand::rngs::ThreadRng;
 use rand::{thread_rng, Rng};
-extern crate pancurses;
 use pancurses::{ initscr, start_color, endwin, Input, noecho, init_pair, COLOR_PAIR, Window };
 use pancurses::{ COLOR_GREEN, COLOR_WHITE, COLOR_BLACK };
 
@@ -52,7 +53,7 @@ impl Program {
 
     fn draw(&self) {
         self.window.clear();
-        
+
         self.window.attron(COLOR_PAIR(2));
         for tree in self.trees.iter() {
             self.window.mv(tree.y, tree.x);
