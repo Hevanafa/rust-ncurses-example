@@ -2,7 +2,7 @@
 // "extern crate pancurses", "extern crate" is no longer needed since Rust 2018 because Cargo knows what dependencies to load.
 use rand::rngs::ThreadRng;
 use rand::{thread_rng, Rng};
-use pancurses::{ initscr, resize_term, start_color, endwin, Input, noecho, init_pair, COLOR_PAIR, Window, set_title };
+use pancurses::{ initscr, resize_term, start_color, endwin, Input, noecho, init_pair, COLOR_PAIR, Window, set_title, curs_set };
 use pancurses::{ COLOR_GREEN, COLOR_WHITE, COLOR_BLACK };
 
 use std::error::Error;
@@ -94,6 +94,7 @@ impl Program {
     
         self.window.keypad(true);
         self.window.clear();
+        curs_set(0);
         noecho();
 
         // fill the field with 20 trees
@@ -128,7 +129,7 @@ impl Program {
     }
 
     // returns true if there's a tree
-    fn check_tree(&mut self, delta_x: i32, delta_y: i32) -> bool {
+    fn hit_tree(&mut self, delta_x: i32, delta_y: i32) -> bool {
         if self.trees.iter().any(|tree|
             tree.x == self.man.x + delta_x &&
             tree.y == self.man.y + delta_y
@@ -150,7 +151,7 @@ impl Program {
 
     fn step_x(&mut self, inc: i32) {
         // check tree hit
-        if self.check_tree(inc, 0) { return; }
+        if self.hit_tree(inc, 0) { return; }
 
         self.man.x += inc;
 
@@ -160,7 +161,7 @@ impl Program {
 
     fn step_y(&mut self, inc: i32) {
         // check tree hit
-        if self.check_tree(0, inc) { return; }
+        if self.hit_tree(0, inc) { return; }
 
         self.man.y += inc;
 
