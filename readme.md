@@ -1,6 +1,13 @@
-# Rust + Pancurses + Kira
-An example text-based game with SFX player.
-I chose `kira` for the audio player because `rodio` was too hard to use.
+# Lumberjack
+By Hevanafa (12-12-2022)
+
+A basic text-based game with SFX player.
+
+**Stack:** Rust + Pancurses + Kira
+
+`pancurses`: working `ncurses` port for Windows
+
+I chose `kira` for the audio player because `rodio` was too hard to use, especially the case where I want to reuse the audio stream.
 
 # How to Start
 1. Clone the repo
